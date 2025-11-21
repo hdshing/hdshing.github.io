@@ -1,2 +1,610 @@
-<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width, initial-scale=1.0"><meta http-equiv=X-UA-Compatible content=ie=edge><title>生成二维码</title><link rel="shortcut icon" href="https://www.atomtechnology.com.hk/images/qrcode.ico" type="image/x-icon"/><script src=https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcss.com/jquery.qrcode/1.0/jquery.qrcode.min.js></script><style>*{margin:0;bottom:0;padding:0}body{position:relative;width:100%;padding-top:130px;box-sizing:border-box;background-color:rgb(237,242,245)}.qr_box{width:160px;height:160px;padding:10px;margin:30px auto 0;border:1px solid #000;border-radius:5px;display:none;background-color:#fff}.qr_box canvas{width:100%}.inp_box{position:relative;width:100%;height:auto;text-align:center}.inp_url{width:400px;font-size:16px;border:1px solid #2A27AE;padding:8px 10px;border-radius:4px;outline:none}.create_qr{font-size:20px;padding:10px 30px;background-color:#252070;color:#fff;border:0;border-radius:6px;outline:none;margin-top:20px;cursor:pointer}@media screen and (max-width: 600px){html{font-size:10px}.inp_box{width:84%;margin:auto}.inp_url{width:100%;box-sizing:border-box}.qr_box{margin-top:4rem;width:24rem;height:24rem;padding:1.2rem}}</style></head><body><div class=inp_box><input class=inp_url type=text placeholder="输入网址"><br><button type=button class=create_qr>生成二维码</button></div><div class=qr_box></div><script>function createQRCode(){var e=$(".inp_url").val();$(".qr_box canvas").remove(),$(".qr_box").qrcode(e),$(".qr_box").show()}$(function(){$(".create_qr").click(function(){createQRCode()})}),document.onkeydown=function(e){13==(document.all?window.event:e).keyCode&&createQRCode()};</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Time is Wealth | Ultimate Persistence</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        bg: '#050505',
+                        panel: '#0f0f0f',
+                        gold: '#D4AF37',
+                        goldDim: 'rgba(212, 175, 55, 0.15)',
+                        goldHover: '#b5952f',
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { textShadow: '0 0 5px rgba(212, 175, 55, 0.1)' },
+                            '100%': { textShadow: '0 0 20px rgba(212, 175, 55, 0.5)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
+    <style>
+        body {
+            background-color: #050505;
+            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 60%);
+            color: #e5e5e5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .glass {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .input-dark {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s;
+        }
+        .input-dark:focus {
+            border-color: #D4AF37;
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        [v-cloak] { opacity: 0; }
+        
+        .day-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .day-btn.is-rest { background-color: #D4AF37; color: black; font-weight: bold; box-shadow: 0 0 10px rgba(212,175,55,0.3); }
+        .day-btn:active { transform: scale(0.95); }
+    </style>
+
+    <script type="importmap">
+        { "imports": { "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js" } }
+    </script>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col relative">
+
+    <div id="app" v-cloak class="h-full w-full flex flex-col relative">
+        
+        <header class="absolute top-0 left-0 w-full p-4 md:p-8 flex justify-between items-center z-30">
+            <div class="flex items-center gap-2 opacity-80">
+                <div class="w-2 h-2 rounded-full bg-gold"></div>
+                <span class="text-xs font-bold tracking-[0.2em] uppercase text-gray-400">Time Is Wealth</span>
+            </div>
+            <button @click="showSettings = !showSettings" 
+                    class="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-300 z-50">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+                </svg>
+            </button>
+        </header>
+
+        <main class="flex-1 flex flex-col justify-center items-center p-4 md:p-8 transition-all duration-500 relative z-10"
+              :class="{'blur-sm opacity-50 scale-95': showSettings}">
+            
+            <div class="mb-8 md:mb-12 flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/5 bg-white/5 backdrop-blur-sm">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span v-if="isWorking" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="isWorking ? 'bg-gold' : 'bg-gray-600'"></span>
+                </span>
+                <span class="text-[10px] md:text-xs font-mono tracking-widest uppercase text-gray-400">
+                    {{ isWorking ? t.status_active : t.status_inactive }}
+                </span>
+            </div>
+
+            <div class="text-center w-full max-w-4xl">
+                <h1 class="text-gray-500 text-xs md:text-sm tracking-[0.4em] uppercase mb-2 md:mb-6 font-light">{{ t.label_today_gain }}</h1>
+                
+                <div class="font-mono font-bold tracking-tight text-white flex items-baseline justify-center mb-2 relative"
+                     :class="{'animate-glow text-gold': isWorking}">
+                    <span class="text-3xl md:text-5xl text-gray-600 mr-2 md:mr-4 select-none">¥</span>
+                    <span class="text-6xl md:text-9xl leading-none">{{ formatMain(todayEarnings).int }}</span>
+                    <span class="text-3xl md:text-5xl text-gray-500">.{{ formatMain(todayEarnings).dec }}</span>
+                </div>
+            </div>
+
+            <div class="mt-12 w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 px-2">
+                
+                <div class="glass rounded-xl p-4 flex flex-col items-center justify-center">
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">{{ t.label_per_sec }}</span>
+                    <span class="font-mono text-lg text-gray-300">¥{{ formatNum(salaryPerSecond, 4) }}</span>
+                </div>
+
+                <div class="glass rounded-xl p-4 flex flex-col items-center justify-center border-t border-gold/20 md:border-t-0 md:border-x">
+                    <span class="text-[10px] uppercase tracking-widest text-gold/70 mb-1">{{ t.label_month_total }}</span>
+                    <span class="font-mono text-xl text-white">¥{{ formatNum(monthEarnings, 2) }}</span>
+                </div>
+
+                <div class="glass rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div class="absolute bottom-0 left-0 h-1 bg-gold/50 transition-all duration-1000" :style="{width: monthProgress + '%'}"></div>
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">{{ t.label_month_progress }}</span>
+                    <span class="font-mono text-lg text-gray-300">{{ monthProgress }}%</span>
+                </div>
+
+            </div>
+
+        </main>
+
+        <aside class="fixed inset-0 z-40 transition-transform duration-500 ease-out bg-black/60 backdrop-blur-sm"
+               :class="showSettings ? 'translate-x-0' : 'translate-x-full'"
+               @click.self="showSettings = false">
+            
+            <div class="absolute top-0 right-0 w-full md:w-[450px] h-full bg-panel border-l border-white/10 flex flex-col shadow-2xl">
+                
+                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-[#141414]">
+                    <h2 class="text-sm font-light tracking-widest uppercase text-white flex items-center gap-2">
+                        {{ t.settings_title }}
+                    </h2>
+                    <div class="flex gap-4 items-center">
+                        <select v-model="currentLang" class="bg-transparent text-[10px] font-mono text-gold border border-white/20 rounded px-2 py-1 uppercase outline-none focus:border-gold cursor-pointer">
+                            <option value="en">ENG</option>
+                            <option value="zh-cn">简体</option>
+                            <option value="zh-tw">繁體</option>
+                            <option value="ja">日本語</option>
+                            <option value="ko">한국어</option>
+                        </select>
+                        <button @click="showSettings = false" class="text-gray-400 hover:text-white">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-6 space-y-8">
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-baseline">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.set_salary }}</label>
+                            <div class="text-right">
+                                <span class="text-[10px] text-gray-500 uppercase mr-2">{{ t.label_daily }}</span>
+                                <span class="font-mono text-gold text-sm">¥{{ formatNum(calculations.dailySalary, 2) }}</span>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-gray-500 font-mono">¥</span>
+                            <input type="number" v-model.number="config.salary" class="w-full input-dark pl-8 pr-4 py-3 rounded-lg font-mono text-lg" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-white/5 w-full"></div>
+
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.set_rest_days }}</label>
+                            <span class="text-[10px] bg-gold/10 text-gold px-2 py-1 rounded font-mono">
+                                {{ restDaysSet.size }} DAYS OFF
+                            </span>
+                        </div>
+                        
+                        <div class="bg-black/30 border border-white/10 rounded-xl p-4">
+                            <div class="text-center text-sm font-mono text-gray-400 mb-4 uppercase tracking-widest border-b border-white/5 pb-2">
+                                {{ currentMonthName }}
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 mb-2 text-center">
+                                <span class="text-[10px] text-gray-600" v-for="d in ['S','M','T','W','T','F','S']">{{ d }}</span>
+                            </div>
+                            <div class="grid grid-cols-7 gap-2">
+                                <button v-for="(day, idx) in calendarGrid" :key="idx"
+                                        @click="day && toggleRestDay(day)"
+                                        :disabled="!day"
+                                        :class="[
+                                            'w-full aspect-square rounded-md flex items-center justify-center text-xs font-mono day-btn',
+                                            !day ? 'invisible' : '',
+                                            day && isRestDay(day) ? 'is-rest' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white',
+                                            day && isToday(day) ? 'border border-white/40' : ''
+                                        ]">
+                                    {{ day ? day.getDate() : '' }}
+                                </button>
+                            </div>
+                            <p class="mt-3 text-[10px] text-gray-600 text-center">{{ t.calendar_hint }}</p>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-white/5 w-full"></div>
+
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase block">{{ t.set_start_work }}</label>
+                                <input type="time" v-model="config.workStart" class="w-full input-dark px-3 py-2 rounded-lg font-mono text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase block">{{ t.set_end_work }}</label>
+                                <input type="time" v-model="config.workEnd" class="w-full input-dark px-3 py-2 rounded-lg font-mono text-sm">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                             <label class="text-xs font-bold text-gray-500 uppercase block">{{ t.set_lunch }}</label>
+                             <div class="flex items-center gap-2">
+                                 <input type="time" v-model="config.lunchStart" class="flex-1 input-dark px-3 py-2 rounded-lg font-mono text-sm">
+                                 <span class="text-gray-600">-</span>
+                                 <input type="time" v-model="config.lunchEnd" class="flex-1 input-dark px-3 py-2 rounded-lg font-mono text-sm">
+                             </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div class="p-4 text-center border-t border-white/10 bg-[#141414] flex justify-between items-center">
+                    <p class="text-[10px] text-gray-600 font-mono">STORAGE: LOCAL</p>
+                    <button @click="resetData" class="text-[10px] text-red-900 hover:text-red-500 uppercase tracking-wider transition-colors">
+                        Reset Data
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script type="module">
+        import { createApp, ref, computed, onMounted, watch, reactive } from 'vue';
+
+        // Constants
+        const STORAGE_KEY = 'TIW_USER_DATA_V2';
+
+        const i18n = {
+            en: {
+                settings_title: 'Configuration',
+                status_active: 'Income Flowing',
+                status_inactive: 'Off The Clock',
+                label_today_gain: "Today's Accumulation",
+                label_daily: 'Daily Rate',
+                label_per_sec: 'Rate / Sec',
+                label_month_progress: 'Month %',
+                label_month_total: 'Current Month Actual',
+                set_salary: 'Monthly Salary',
+                set_rest_days: 'Select Rest Days',
+                set_start_work: 'Start Work',
+                set_end_work: 'End Work',
+                set_lunch: 'Unpaid Lunch',
+                calendar_hint: 'Tap dates to toggle rest days (Gold = Rest)'
+            },
+            'zh-cn': {
+                settings_title: '系统参数',
+                status_active: '正在入账',
+                status_inactive: '非计薪时间',
+                label_today_gain: '今日实时收益',
+                label_daily: '工作日薪',
+                label_per_sec: '每秒收益',
+                label_month_progress: '本月进度',
+                label_month_total: '本月实际累计',
+                set_salary: '月薪设置',
+                set_rest_days: '选择休息日',
+                set_start_work: '上班时间',
+                set_end_work: '下班时间',
+                set_lunch: '午休时间',
+                calendar_hint: '点击日期切换状态 (金色 = 休息)'
+            },
+            'zh-tw': {
+                settings_title: '系統參數',
+                status_active: '正在入賬',
+                status_inactive: '非計薪時間',
+                label_today_gain: '今日實時收益',
+                label_daily: '工作日薪',
+                label_per_sec: '每秒收益',
+                label_month_progress: '本月進度',
+                label_month_total: '本月實際累計',
+                set_salary: '月薪設置',
+                set_rest_days: '選擇休息日',
+                set_start_work: '上班時間',
+                set_end_work: '下班時間',
+                set_lunch: '午休時間',
+                calendar_hint: '點擊日期切換狀態 (金色 = 休息)'
+            },
+            ja: {
+                settings_title: '設定',
+                status_active: '収益発生中',
+                status_inactive: '勤務時間外',
+                label_today_gain: '本日の収益',
+                label_daily: '日給',
+                label_per_sec: '秒給',
+                label_month_progress: '月間進捗',
+                label_month_total: '今月の実績',
+                set_salary: '月給',
+                set_rest_days: '休日選択',
+                set_start_work: '始業時間',
+                set_end_work: '終業時間',
+                set_lunch: '昼休憩',
+                calendar_hint: '日付タップで休日切替 (金 = 休)'
+            },
+            ko: {
+                settings_title: '설정',
+                status_active: '수익 발생 중',
+                status_inactive: '근무 시간 외',
+                label_today_gain: '오늘의 수익',
+                label_daily: '일급',
+                label_per_sec: '초당 수익',
+                label_month_progress: '이번 달 진행률',
+                label_month_total: '이번 달 실수령액',
+                set_salary: '월급',
+                set_rest_days: '휴무일 선택',
+                set_start_work: '출근 시간',
+                set_end_work: '퇴근 시간',
+                set_lunch: '점심 시간',
+                calendar_hint: '날짜를 눌러 휴무일 전환 (금색 = 휴무)'
+            }
+        };
+
+        // Defaults
+        const defaultConfig = {
+            salary: 10000,
+            workStart: '09:00',
+            workEnd: '18:00',
+            lunchStart: '12:00',
+            lunchEnd: '13:30'
+        };
+
+        createApp({
+            setup() {
+                const showSettings = ref(false);
+                const currentLang = ref('en'); 
+                
+                // Main Config Object
+                const config = reactive({...defaultConfig});
+
+                // Data State
+                const now = ref(new Date());
+                const todayEarnings = ref(0);
+                const monthEarnings = ref(0);
+                const isWorking = ref(false);
+                const restDaysSet = ref(new Set());
+
+                const t = computed(() => i18n[currentLang.value] || i18n['en']);
+
+                // --- Persistence Layer ---
+                function saveAllData() {
+                    try {
+                        const data = {
+                            config: config,
+                            lang: currentLang.value,
+                            restDays: [...restDaysSet.value] // Convert Set to Array
+                        };
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                        // console.log('Data saved to local storage');
+                    } catch (e) {
+                        console.error('Error saving data', e);
+                    }
+                }
+
+                function loadAllData() {
+                    try {
+                        const raw = localStorage.getItem(STORAGE_KEY);
+                        if (raw) {
+                            const data = JSON.parse(raw);
+                            
+                            // Restore Config
+                            if(data.config) Object.assign(config, data.config);
+                            
+                            // Restore Language
+                            if(data.lang && i18n[data.lang]) currentLang.value = data.lang;
+                            
+                            // Restore Rest Days
+                            if(data.restDays && Array.isArray(data.restDays)) {
+                                restDaysSet.value = new Set(data.restDays);
+                            }
+                        } else {
+                            // First time load: Auto populate weekends
+                            autoPopulateWeekends();
+                        }
+                    } catch (e) {
+                        console.error('Error loading data, resetting to defaults', e);
+                        autoPopulateWeekends();
+                    }
+                }
+
+                function resetData() {
+                    if(confirm('Reset all settings to default?')) {
+                        Object.assign(config, defaultConfig);
+                        currentLang.value = 'en';
+                        restDaysSet.value.clear();
+                        autoPopulateWeekends();
+                        saveAllData();
+                        location.reload();
+                    }
+                }
+
+                // --- Logic ---
+                const currentMonthName = computed(() => {
+                    return now.value.toLocaleString(currentLang.value, { month: 'long', year: 'numeric' });
+                });
+
+                const calendarGrid = computed(() => {
+                    const y = now.value.getFullYear();
+                    const m = now.value.getMonth();
+                    const firstDay = new Date(y, m, 1);
+                    const daysInMonth = new Date(y, m + 1, 0).getDate();
+                    
+                    const grid = [];
+                    for (let i = 0; i < firstDay.getDay(); i++) grid.push(null);
+                    for (let d = 1; d <= daysInMonth; d++) grid.push(new Date(y, m, d));
+                    return grid;
+                });
+
+                function getDateStr(date) {
+                    if (!date) return '';
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                }
+
+                function isRestDay(date) {
+                    return restDaysSet.value.has(getDateStr(date));
+                }
+
+                function isToday(date) {
+                    const n = now.value;
+                    return date.getDate() === n.getDate() && date.getMonth() === n.getMonth() && date.getFullYear() === n.getFullYear();
+                }
+
+                function toggleRestDay(date) {
+                    const str = getDateStr(date);
+                    if (restDaysSet.value.has(str)) {
+                        restDaysSet.value.delete(str);
+                    } else {
+                        restDaysSet.value.add(str);
+                    }
+                    // Trigger save manually here as Set mutation doesn't trigger deep watch easily
+                    saveAllData(); 
+                    calculate();
+                }
+
+                function autoPopulateWeekends() {
+                    const y = now.value.getFullYear();
+                    const m = now.value.getMonth();
+                    const daysInMonth = new Date(y, m + 1, 0).getDate();
+                    
+                    for(let d=1; d<=daysInMonth; d++) {
+                        const date = new Date(y, m, d);
+                        const dayOfWeek = date.getDay();
+                        if (dayOfWeek === 0 || dayOfWeek === 6) { 
+                            restDaysSet.value.add(getDateStr(date));
+                        }
+                    }
+                }
+
+                // --- Calculation Logic ---
+                const getTimeDate = (timeStr, baseDate) => {
+                    const [h, m] = timeStr.split(':').map(Number);
+                    const date = new Date(baseDate);
+                    date.setHours(h, m, 0, 0);
+                    return date;
+                };
+
+                const calculations = computed(() => {
+                    const date = now.value;
+                    const totalDaysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                    
+                    let restCount = 0;
+                    const y = date.getFullYear();
+                    const m = date.getMonth();
+                    
+                    restDaysSet.value.forEach(str => {
+                         const [ry, rm, rd] = str.split('-').map(Number);
+                         if (ry === y && rm === m + 1) restCount++;
+                    });
+
+                    const workingDaysInMonth = Math.max(1, totalDaysInMonth - restCount);
+                    const dailySalary = config.salary / workingDaysInMonth;
+
+                    const start = getTimeDate(config.workStart, date);
+                    const end = getTimeDate(config.workEnd, date);
+                    const lunchStart = getTimeDate(config.lunchStart, date);
+                    const lunchEnd = getTimeDate(config.lunchEnd, date);
+
+                    let totalWorkSeconds = (end - start) / 1000;
+                    let lunchSeconds = (lunchEnd - lunchStart) / 1000;
+                    if (lunchSeconds < 0) lunchSeconds = 0;
+                    totalWorkSeconds -= lunchSeconds;
+                    if (totalWorkSeconds <= 0) totalWorkSeconds = 1;
+
+                    return { dailySalary, salaryPerSecond: dailySalary / totalWorkSeconds, times: { start, end, lunchStart, lunchEnd }, workingDaysInMonth, totalDaysInMonth };
+                });
+
+                const salaryPerSecond = computed(() => calculations.value.salaryPerSecond);
+
+                function loop() {
+                    now.value = new Date();
+                    calculate();
+                    requestAnimationFrame(loop);
+                }
+
+                function calculate() {
+                    const c = calculations.value;
+                    const current = now.value;
+                    const currentDateStr = getDateStr(current);
+                    
+                    // 1. Today
+                    let workedSecondsToday = 0;
+                    let _isWorking = false;
+                    const isTodayRest = restDaysSet.value.has(currentDateStr);
+
+                    if (!isTodayRest) {
+                        const { start, end, lunchStart, lunchEnd } = c.times;
+                        if (current >= start && current <= end && !(current >= lunchStart && current < lunchEnd)) {
+                            _isWorking = true;
+                        }
+                        if (current > start) {
+                            const morningEnd = current > lunchStart ? lunchStart : current;
+                            workedSecondsToday += Math.max(0, (morningEnd - start) / 1000);
+                            if (current > lunchEnd) {
+                                const afternoonEnd = current > end ? end : current;
+                                workedSecondsToday += Math.max(0, (afternoonEnd - lunchEnd) / 1000);
+                            }
+                        }
+                    }
+
+                    isWorking.value = _isWorking;
+                    todayEarnings.value = workedSecondsToday * c.salaryPerSecond;
+
+                    // 2. Past Days
+                    let pastEarnings = 0;
+                    const dayIterator = new Date(current.getFullYear(), current.getMonth(), 1);
+                    
+                    while (dayIterator.getDate() < current.getDate()) {
+                        const dStr = getDateStr(dayIterator);
+                        if (!restDaysSet.value.has(dStr)) pastEarnings += c.dailySalary;
+                        dayIterator.setDate(dayIterator.getDate() + 1);
+                    }
+
+                    monthEarnings.value = pastEarnings + todayEarnings.value;
+                }
+
+                const monthProgress = computed(() => {
+                    if (config.salary <= 0) return 0;
+                    return Math.min(100, (monthEarnings.value / config.salary) * 100).toFixed(1);
+                });
+
+                const formatNum = (val, dec = 2) => val.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+                const formatMain = (val) => {
+                    const s = val.toFixed(4);
+                    const [int, dec] = s.split('.');
+                    return { int, dec };
+                };
+
+                // --- Init & Watchers ---
+                onMounted(() => {
+                    loadAllData();
+                    requestAnimationFrame(loop);
+                });
+
+                // Watch config deeply for any changes to numbers/times
+                watch(config, saveAllData, { deep: true });
+                // Watch language
+                watch(currentLang, saveAllData);
+
+                return {
+                    config, showSettings, currentLang, 
+                    todayEarnings, monthEarnings, isWorking, salaryPerSecond, monthProgress,
+                    calculations, t, calendarGrid, currentMonthName, isRestDay, isToday, toggleRestDay, restDaysSet,
+                    formatNum, formatMain, resetData
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
