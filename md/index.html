@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown 在线阅读器</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Markdown 在线阅读器</h1>
+            <p class="subtitle">上传本地文件或输入 URL 在线阅读 Markdown</p>
+        </header>
+
+        <div class="input-section">
+            <!-- 文件上传 -->
+            <div class="input-group">
+                <label for="fileInput">上传本地 Markdown 文件</label>
+                <input type="file" id="fileInput" accept=".md,.markdown,.txt">
+            </div>
+
+            <div class="divider">或</div>
+
+            <!-- URL 输入 -->
+            <div class="input-group">
+                <label for="urlInput">输入 Markdown 文件 URL</label>
+                <div class="url-input-wrapper">
+                    <input type="text" id="urlInput" placeholder="https://example.com/readme.md">
+                    <button id="loadUrlBtn">加载</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 显示区域 -->
+        <div id="content" class="markdown-body"></div>
+
+        <footer>
+            <p>Powered by <a href="https://marked.js.org/" target="_blank">marked.js</a></p>
+        </footer>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

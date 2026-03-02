@@ -1,0 +1,377 @@
+/* 基础重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* CSS 变量 - 亮色模式 */
+:root {
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --text-secondary: #666666;
+    --border-color: #e0e0e0;
+    --primary-color: #4a90d9;
+    --primary-hover: #357abd;
+    --code-bg: #f4f4f4;
+    --blockquote-border: #4a90d9;
+    --link-color: #4a90d9;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1a1a1a;
+        --card-bg: #2d2d2d;
+        --text-color: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --border-color: #404040;
+        --primary-color: #5ba3e8;
+        --primary-hover: #4a90d9;
+        --code-bg: #3d3d3d;
+        --blockquote-border: #5ba3e8;
+        --link-color: #5ba3e8;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* 头部 */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* 输入区域 */
+.input-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 16px;
+}
+
+.input-group:last-child {
+    margin-bottom: 0;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* 文件输入 */
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+input[type="file"]:hover {
+    border-color: var(--primary-color);
+}
+
+/* 分隔线 */
+.divider {
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-secondary);
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+/* URL 输入 */
+.url-input-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+#urlInput {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+#urlInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#urlInput::placeholder {
+    color: var(--text-secondary);
+}
+
+#loadUrlBtn {
+    padding: 10px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+#loadUrlBtn:hover {
+    background: var(--primary-hover);
+}
+
+#loadUrlBtn:active {
+    transform: scale(0.98);
+}
+
+/* Markdown 内容区域 */
+.markdown-body {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    min-height: 200px;
+    display: none;
+}
+
+.markdown-body.show {
+    display: block;
+}
+
+/* Markdown 样式 */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--text-color);
+}
+
+.markdown-body h1 {
+    font-size: 2em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.markdown-body h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+
+.markdown-body h3 {
+    font-size: 1.25em;
+}
+
+.markdown-body p {
+    margin-bottom: 16px;
+    color: var(--text-color);
+}
+
+.markdown-body a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin-bottom: 16px;
+    padding-left: 24px;
+}
+
+.markdown-body li {
+    margin-bottom: 4px;
+}
+
+.markdown-body code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "SF Mono", Monaco, Inconsolata, "Fira Code", monospace;
+    font-size: 0.9em;
+}
+
+.markdown-body pre {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+.markdown-body pre code {
+    background: none;
+    padding: 0;
+}
+
+.markdown-body blockquote {
+    border-left: 4px solid var(--blockquote-border);
+    padding-left: 16px;
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+}
+
+.markdown-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+.markdown-body th,
+.markdown-body td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.markdown-body th {
+    background: var(--code-bg);
+    font-weight: 600;
+}
+
+.markdown-body hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 24px 0;
+}
+
+/* 空状态提示 */
+.markdown-body:empty::before {
+    content: "Markdown 内容将显示在这里";
+    color: var(--text-secondary);
+    text-align: center;
+    display: block;
+    padding: 60px 20px;
+}
+
+/* 错误提示 */
+.error-message {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* 加载提示 */
+.loading {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px;
+}
+
+/* 底部 */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+footer a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .input-section {
+        padding: 16px;
+    }
+
+    .url-input-wrapper {
+        flex-direction: column;
+    }
+
+    #loadUrlBtn {
+        width: 100%;
+    }
+
+    .markdown-body {
+        padding: 20px;
+    }
+
+    .divider::before,
+    .divider::after {
+        width: 30%;
+    }
+}
