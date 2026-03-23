@@ -152,34 +152,113 @@ urlInput.addEventListener('keypress', function(event) {
     }
 });
 
-// 拖拽上传支持
-const dropZone = document.querySelector('.input-section');
+// 拖拽上传支持 - 整个页面都可以拖拽
+let dragCounter = 0;
+let dragOverlay = null;
 
-dropZone.addEventListener('dragover', function(event) {
+// 创建拖拽提示层
+function createDragOverlay() {
+    if (dragOverlay) return dragOverlay;
+    
+    dragOverlay = document.createElement('div');
+    dragOverlay.id = 'drag-overlay';
+    dragOverlay.innerHTML = `
+        <div class="drag-overlay-content">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+            <h2>释放以打开 Markdown 文件</h2>
+            <p>支持 .md, .markdown, .txt 格式</p>
+        </div>
+    `;
+    document.body.appendChild(dragOverlay);
+    return dragOverlay;
+}
+
+// 阻止默认行为
+function preventDefault(event) {
     event.preventDefault();
     event.stopPropagation();
-    this.style.borderColor = 'var(--primary-color)';
-    this.style.background = 'rgba(74, 144, 217, 0.05)';
-});
+}
 
-dropZone.addEventListener('dragleave', function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.style.borderColor = '';
-    this.style.background = '';
-});
+// 处理文件
+function handleDropFile(file) {
+    const validTypes = [
+        'text/markdown',
+        'text/x-markdown',
+        'text/plain',
+        ''
+    ];
+    
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.md') && !file.name.endsWith('.markdown') && !file.name.endsWith('.txt')) {
+        showError('请上传有效的 Markdown 文件 (.md, .markdown, .txt)');
+        return;
+    }
+    
+    showLoading();
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        renderMarkdown(content);
+    };
+    reader.onerror = function() {
+        showError('文件读取失败，请重试');
+    };
+    reader.readAsText(file);
+}
 
-dropZone.addEventListener('drop', function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.style.borderColor = '';
-    this.style.background = '';
-
-    const files = event.dataTransfer.files;
-    if (files.length > 0) {
-        fileInput.files = files;
-        handleFileUpload({ target: fileInput });
+// 全局拖拽事件 - 整个页面
+document.addEventListener('dragenter', function(event) {
+    preventDefault(event);
+    dragCounter++;
+    if (dragCounter === 1) {
+        createDragOverlay().classList.add('show');
     }
 });
 
-console.log('Markdown 阅读器已加载');
+document.addEventListener('dragover', function(event) {
+    preventDefault(event);
+});
+
+document.addEventListener('dragleave', function(event) {
+    preventDefault(event);
+    dragCounter--;
+    if (dragCounter === 0) {
+        const overlay = document.getElementById('drag-overlay');
+        if (overlay) overlay.classList.remove('show');
+    }
+});
+
+document.addEventListener('drop', function(event) {
+    preventDefault(event);
+    dragCounter = 0;
+    const overlay = document.getElementById('drag-overlay');
+    if (overlay) overlay.classList.remove('show');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        handleDropFile(files[0]);
+    }
+});
+
+// 粘贴支持
+document.addEventListener('paste', function(event) {
+    const items = event.clipboardData?.items;
+    if (items) {
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type === 'text/plain' || items[i].type === 'text/markdown') {
+                items[i].getAsString(function(text) {
+                    renderMarkdown(text);
+                });
+                event.preventDefault();
+                break;
+            }
+        }
+    }
+});
+
+console.log('Markdown 阅读器已加载 - 支持全局拖拽');
