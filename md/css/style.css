@@ -47,7 +47,7 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -90,6 +90,12 @@ header h1 {
     margin-bottom: 8px;
     font-weight: 500;
     color: var(--text-color);
+}
+
+.file-hint {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
 }
 
 /* 文件输入 */
@@ -191,6 +197,70 @@ input[type="file"]:hover {
 
 .markdown-body.show {
     display: block;
+}
+
+.markdown-body.code-mode {
+    padding: 32px;
+    overflow: visible;
+}
+
+.code-viewer {
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.code-viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 48px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.code-file-name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-color);
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.code-language {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.code-viewer pre {
+    margin: 0;
+    padding: 20px;
+    border-radius: 0;
+    overflow: visible;
+    tab-size: 4;
+}
+
+.code-viewer pre code {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    background: transparent;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
 }
 
 /* Markdown 样式 */
@@ -367,6 +437,10 @@ footer a {
     }
 
     .markdown-body {
+        padding: 20px;
+    }
+
+    .markdown-body.code-mode {
         padding: 20px;
     }
 
