@@ -3,6 +3,13 @@ const fileInput = document.getElementById('fileInput');
 const urlInput = document.getElementById('urlInput');
 const loadUrlBtn = document.getElementById('loadUrlBtn');
 const contentDiv = document.getElementById('content');
+const emptyState = document.getElementById('emptyState');
+
+function hideEmptyState() {
+    if (emptyState) {
+        emptyState.hidden = true;
+    }
+}
 
 // 支持的文本文件扩展名及 highlight.js 语言名称。
 // 空字符串表示纯文本，不进行语法高亮。
@@ -63,6 +70,8 @@ marked.setOptions({
  */
 function renderMarkdown(markdown) {
     try {
+        hideEmptyState();
+
         // 使用 marked.parse 将 Markdown 转换为 HTML
         const html = marked.parse(markdown);
         contentDiv.innerHTML = html;
@@ -101,6 +110,8 @@ function formatCode(source, extension) {
  * 以代码模式展示文件，使用 textContent 保留缩进并避免把代码当成 HTML。
  */
 function renderCode(source, fileName, extension) {
+    hideEmptyState();
+
     const language = FILE_LANGUAGES[extension] || '';
     const viewer = document.createElement('section');
     viewer.className = 'code-viewer';
@@ -148,6 +159,8 @@ function renderFile(source, fileName, mimeType = '') {
  * @param {string} message - 错误信息
  */
 function showError(message) {
+    hideEmptyState();
+
     const error = document.createElement('div');
     error.className = 'error-message';
     error.textContent = message;
@@ -160,6 +173,8 @@ function showError(message) {
  * 显示加载状态
  */
 function showLoading() {
+    hideEmptyState();
+
     contentDiv.innerHTML = '<div class="loading">正在加载...</div>';
     contentDiv.classList.remove('code-mode');
     contentDiv.classList.add('show');
@@ -232,7 +247,9 @@ async function loadFromUrl(url) {
         renderFile(content, finalUrl, contentType);
 
         // 清空 URL 输入框
-        urlInput.value = '';
+        if (urlInput) {
+            urlInput.value = '';
+        }
     } catch (error) {
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
             showError('无法获取文件。可能是 URL 无效、文件不存在、目标服务器禁止跨域访问 (CORS)，或网络连接异常。');
@@ -246,20 +263,29 @@ async function loadFromUrl(url) {
  * 处理 URL 加载按钮点击
  */
 function handleUrlLoad() {
+    if (!urlInput) return;
+
     const url = urlInput.value;
     loadFromUrl(url);
 }
 
 // 事件监听器
-fileInput.addEventListener('change', handleFileUpload);
-loadUrlBtn.addEventListener('click', handleUrlLoad);
+if (fileInput) {
+    fileInput.addEventListener('change', handleFileUpload);
+}
+
+if (loadUrlBtn) {
+    loadUrlBtn.addEventListener('click', handleUrlLoad);
+}
 
 // URL 输入框回车键支持
-urlInput.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        handleUrlLoad();
-    }
-});
+if (urlInput) {
+    urlInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            handleUrlLoad();
+        }
+    });
+}
 
 // 拖拽上传支持 - 整个页面都可以拖拽
 let dragCounter = 0;
@@ -293,6 +319,11 @@ function preventDefault(event) {
     event.stopPropagation();
 }
 
+// 仅在拖入的是文件时显示提示；拖动网页文字或链接不触发。
+function isFileDrag(event) {
+    return Array.from(event.dataTransfer?.types || []).includes('Files');
+}
+
 // 处理文件
 function handleDropFile(file) {
     if (!isSupportedFile(file.name, file.type)) {
@@ -314,6 +345,8 @@ function handleDropFile(file) {
 
 // 全局拖拽事件 - 整个页面
 document.addEventListener('dragenter', function(event) {
+    if (!isFileDrag(event)) return;
+
     preventDefault(event);
     dragCounter++;
     if (dragCounter === 1) {
@@ -322,12 +355,17 @@ document.addEventListener('dragenter', function(event) {
 });
 
 document.addEventListener('dragover', function(event) {
+    if (!isFileDrag(event)) return;
+
     preventDefault(event);
+    event.dataTransfer.dropEffect = 'copy';
 });
 
 document.addEventListener('dragleave', function(event) {
+    if (!isFileDrag(event)) return;
+
     preventDefault(event);
-    dragCounter--;
+    dragCounter = Math.max(0, dragCounter - 1);
     if (dragCounter === 0) {
         const overlay = document.getElementById('drag-overlay');
         if (overlay) overlay.classList.remove('show');
@@ -335,6 +373,8 @@ document.addEventListener('dragleave', function(event) {
 });
 
 document.addEventListener('drop', function(event) {
+    if (!isFileDrag(event)) return;
+
     preventDefault(event);
     dragCounter = 0;
     const overlay = document.getElementById('drag-overlay');
@@ -348,16 +388,32 @@ document.addEventListener('drop', function(event) {
 
 // 粘贴支持
 document.addEventListener('paste', function(event) {
-    const items = event.clipboardData?.items;
-    if (items) {
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].type === 'text/plain' || items[i].type === 'text/markdown') {
-                items[i].getAsString(function(text) {
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+
+    // 从资源管理器复制文件后粘贴时，优先按本地文件处理。
+    const pastedFile = clipboardData.files[0]
+        || Array.from(clipboardData.items)
+            .find((item) => item.kind === 'file')
+            ?.getAsFile();
+
+    if (pastedFile) {
+        event.preventDefault();
+        handleDropFile(pastedFile);
+        return;
+    }
+
+    // 保留直接粘贴 Markdown/纯文本内容的能力。
+    for (const item of clipboardData.items) {
+        if (item.kind === 'string'
+            && (item.type === 'text/plain' || item.type === 'text/markdown')) {
+            item.getAsString(function(text) {
+                if (text) {
                     renderMarkdown(text);
-                });
-                event.preventDefault();
-                break;
-            }
+                }
+            });
+            event.preventDefault();
+            break;
         }
     }
 });
