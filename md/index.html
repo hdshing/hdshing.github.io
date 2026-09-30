@@ -12,21 +12,40 @@
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/lib/common.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>All文件预览</h1>
-        </header>
+    <div class="app-shell">
+        <nav class="activity-bar" aria-label="工具栏">
+            <button id="historyToggle" class="activity-button" type="button" aria-label="阅读历史" aria-controls="historyPanel" aria-expanded="false" title="阅读历史">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 2.75h8l4 4V21.25H6a2 2 0 0 1-2-2V4.75a2 2 0 0 1 2-2Z"></path>
+                    <path d="M14 2.75v4h4M8 12h6M8 16h8"></path>
+                </svg>
+            </button>
+        </nav>
 
-        <div id="emptyState" class="empty-state" aria-live="polite">
-            <p><span>将文件拖拽到页面，或复制文件后按</span> <span class="keyboard-shortcut"><kbd>Ctrl</kbd><span>+</span><kbd>V</kbd></span> <span>粘贴，即可打开阅读</span></p>
-        </div>
+        <aside id="historyPanel" class="history-panel" aria-label="阅读历史" hidden>
+            <div class="history-header">
+                <h2>阅读历史</h2>
+                <button id="historyClose" class="history-close" type="button" aria-label="关闭阅读历史">×</button>
+            </div>
+            <p id="historyStatus" class="history-status" aria-live="polite">暂无阅读记录</p>
+            <ul id="historyList" class="history-list"></ul>
+            <div id="historyResize" class="history-resize" role="separator" aria-label="调整阅读历史宽度" aria-orientation="vertical" aria-valuemin="160" aria-valuemax="560" aria-valuenow="260" tabindex="0"></div>
+        </aside>
 
-        <!-- 显示区域 -->
-        <div id="content" class="markdown-body"></div>
-<!--
-        <footer>
-            <p>Powered by <a href="https://marked.js.org/" target="_blank">marked.js</a></p>
-        </footer> -->
+        <main class="workspace">
+            <div class="container">
+                <header id="pageHeader">
+                    <h1>ALL文件预览</h1>
+                </header>
+
+                <div id="emptyState" class="empty-state" aria-live="polite">
+                    <p><span>将文件拖拽到页面，或复制文件后按</span> <span class="keyboard-shortcut"><kbd>Ctrl</kbd><span>+</span><kbd>V</kbd></span> <span>粘贴，即可打开阅读</span></p>
+                </div>
+
+                <!-- 显示区域 -->
+                <div id="content" class="markdown-body"></div>
+            </div>
+        </main>
     </div>
 
     <script src="js/script.js"></script>

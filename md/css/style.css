@@ -17,6 +17,8 @@
     --code-bg: #f4f4f4;
     --blockquote-border: #4a90d9;
     --link-color: #4a90d9;
+    --history-active-bg: #dcecff;
+    --history-resize-hint: #b5d0e6;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -33,6 +35,8 @@
         --code-bg: #3d3d3d;
         --blockquote-border: #5ba3e8;
         --link-color: #5ba3e8;
+        --history-active-bg: #284360;
+        --history-resize-hint: #789cb9;
         --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 }
@@ -43,6 +47,266 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
+}
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.activity-bar {
+    flex: 0 0 56px;
+    align-self: flex-start;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding-top: 12px;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+}
+
+.activity-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 48px;
+    border: 0;
+    border-left: 2px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.activity-button svg {
+    width: 25px;
+    height: 25px;
+}
+
+.activity-button:hover,
+.activity-button[aria-expanded="true"] {
+    color: var(--text-color);
+}
+
+.activity-button[aria-expanded="true"] {
+    border-left-color: var(--primary-color);
+}
+
+.activity-button:focus-visible,
+.history-close:focus-visible,
+.history-item:focus-visible,
+.history-delete:focus-visible,
+.history-resize:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -3px;
+}
+
+.history-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 var(--history-panel-width, 260px);
+    width: var(--history-panel-width, 260px);
+    min-width: 160px;
+    max-width: calc(100vw - 48px);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    overflow: hidden;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+}
+
+.history-panel[hidden] {
+    display: none;
+}
+
+.history-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 12px 15px 18px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.history-header h2 {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.history-close {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.35rem;
+    cursor: pointer;
+}
+
+.history-close:hover,
+.history-entry:hover {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.history-status {
+    padding: 16px 18px;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+}
+
+.history-list {
+    flex: 1;
+    min-height: 0;
+    list-style: none;
+    padding: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.history-entry {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.history-entry.active,
+.history-entry.active:hover {
+    background: var(--history-active-bg);
+}
+
+.history-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-color);
+    font: inherit;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+}
+
+.history-title {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-delete {
+    display: grid;
+    place-items: center;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    margin-right: 5px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.history-entry:hover .history-delete,
+.history-entry:focus-within .history-delete {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.history-delete:hover {
+    background: var(--card-bg);
+    color: #c9302c;
+}
+
+.history-time {
+    display: none;
+    width: 100%;
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-entry:hover .history-time,
+.history-entry:focus-within .history-time,
+.history-entry.active .history-time {
+    display: block;
+}
+
+.history-resize {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    touch-action: none;
+}
+
+.history-resize::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    background: transparent;
+    transition: background-color 0s;
+}
+
+.history-resize:hover::after {
+    background: var(--history-resize-hint);
+    transition-delay: 0.5s;
+}
+
+.history-resize:focus-visible::after,
+body.resizing-history .history-resize::after {
+    background: var(--history-resize-hint);
+    transition-delay: 0s;
+}
+
+body.resizing-history {
+    cursor: ew-resize;
+    user-select: none;
+}
+
+@media (hover: none) {
+    .history-delete {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .history-time {
+        display: block;
+    }
+}
+
+.workspace {
+    flex: 1;
+    min-width: 0;
+    min-height: 100vh;
+    position: relative;
     padding: 20px;
 }
 
@@ -53,7 +317,7 @@ body {
 
 /* 未打开文件时的页面提示 */
 .empty-state {
-    position: fixed;
+    position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
@@ -483,7 +747,24 @@ footer a {
 
 /* 响应式设计 */
 @media (max-width: 600px) {
-    body {
+    .activity-bar {
+        flex-basis: 48px;
+    }
+
+    .activity-button {
+        width: 48px;
+    }
+
+    .history-panel {
+        position: fixed;
+        left: 48px;
+        z-index: 20;
+        width: min(var(--history-panel-width, 260px), calc(100vw - 48px));
+        min-width: 0;
+        box-shadow: var(--shadow);
+    }
+
+    .workspace {
         padding: 10px;
     }
 

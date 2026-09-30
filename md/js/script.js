@@ -4,6 +4,259 @@ const urlInput = document.getElementById('urlInput');
 const loadUrlBtn = document.getElementById('loadUrlBtn');
 const contentDiv = document.getElementById('content');
 const emptyState = document.getElementById('emptyState');
+const pageHeader = document.getElementById('pageHeader');
+const historyToggle = document.getElementById('historyToggle');
+const historyPanel = document.getElementById('historyPanel');
+const historyClose = document.getElementById('historyClose');
+const historyList = document.getElementById('historyList');
+const historyStatus = document.getElementById('historyStatus');
+const historyResize = document.getElementById('historyResize');
+
+// IndexedDB 保存文件原文，容量由浏览器管理，适合缓存较大的文本文件。
+const HISTORY_DB_NAME = 'universal-preview-history';
+const HISTORY_STORE_NAME = 'files';
+let historyDbPromise;
+let activeHistoryId = null;
+
+function openHistoryDb() {
+    if (!historyDbPromise) {
+        historyDbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(HISTORY_DB_NAME, 1);
+            request.onupgradeneeded = () => {
+                request.result.createObjectStore(HISTORY_STORE_NAME, { keyPath: 'id' });
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    return historyDbPromise;
+}
+
+async function getHistoryRecord(id) {
+    const db = await openHistoryDb();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction(HISTORY_STORE_NAME, 'readonly')
+            .objectStore(HISTORY_STORE_NAME).get(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getHistoryRecords() {
+    const db = await openHistoryDb();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction(HISTORY_STORE_NAME, 'readonly')
+            .objectStore(HISTORY_STORE_NAME).getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function putHistoryRecord(record) {
+    const db = await openHistoryDb();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(HISTORY_STORE_NAME, 'readwrite');
+        transaction.objectStore(HISTORY_STORE_NAME).put(record);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+    });
+}
+
+async function deleteHistoryRecord(id) {
+    const db = await openHistoryDb();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(HISTORY_STORE_NAME, 'readwrite');
+        transaction.objectStore(HISTORY_STORE_NAME).delete(id);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+    });
+}
+
+function setActiveHistoryId(id) {
+    activeHistoryId = id;
+    historyList.querySelectorAll('.history-entry').forEach((item) => {
+        const active = item.dataset.id === id;
+        item.classList.toggle('active', active);
+        const button = item.querySelector('.history-item');
+        if (active) button.setAttribute('aria-current', 'true');
+        else button.removeAttribute('aria-current');
+    });
+}
+
+async function refreshHistory() {
+    historyStatus.hidden = false;
+    historyStatus.textContent = '正在读取历史记录...';
+    try {
+        const records = await getHistoryRecords();
+        // 阅读历史按首次记录时间固定排序，重新打开只更新阅读时间，不改变位置。
+        records.sort((a, b) =>
+            (b.createdAt ?? b.readAt ?? 0) - (a.createdAt ?? a.readAt ?? 0)
+            || String(a.id).localeCompare(String(b.id)));
+        const items = document.createDocumentFragment();
+        for (const record of records) {
+            const item = document.createElement('li');
+            item.className = 'history-entry';
+            item.dataset.id = record.id;
+            if (record.id === activeHistoryId) item.classList.add('active');
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'history-item';
+            button.title = record.title;
+            button.setAttribute('aria-label', `打开 ${record.title}`);
+            if (record.id === activeHistoryId) button.setAttribute('aria-current', 'true');
+
+            const title = document.createElement('span');
+            title.className = 'history-title';
+            title.textContent = record.title;
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'history-delete';
+            removeButton.textContent = '×';
+            removeButton.title = '删除记录';
+            removeButton.setAttribute('aria-label', `删除 ${record.title} 的历史记录`);
+
+            const time = document.createElement('time');
+            time.className = 'history-time';
+            const firstRead = new Date(record.createdAt ?? record.readAt);
+            if (Number.isFinite(firstRead.getTime())) {
+                time.dateTime = firstRead.toISOString();
+                time.textContent = `首次记录：${firstRead.toLocaleString('zh-CN', { hour12: false })}`;
+            } else {
+                time.textContent = '首次记录时间未知';
+            }
+
+            button.append(title, time);
+            item.append(button, removeButton);
+            items.appendChild(item);
+        }
+        historyList.replaceChildren(items);
+        historyStatus.hidden = records.length > 0;
+        if (!records.length) historyStatus.textContent = '暂无阅读记录';
+    } catch (error) {
+        historyStatus.textContent = '无法读取历史记录，请检查浏览器存储设置';
+    }
+}
+
+async function saveRead(record) {
+    try {
+        const previous = await getHistoryRecord(record.id);
+        const now = Date.now();
+        await putHistoryRecord({
+            ...record,
+            createdAt: previous?.createdAt ?? previous?.readAt ?? record.createdAt ?? now,
+            readAt: now
+        });
+        if (!historyPanel.hidden) await refreshHistory();
+    } catch (error) {
+        historyStatus.hidden = false;
+        historyStatus.textContent = '无法缓存文件，请检查浏览器可用存储空间';
+    }
+}
+
+function setHistoryOpen(open) {
+    historyPanel.hidden = !open;
+    historyToggle.setAttribute('aria-expanded', String(open));
+    if (open) void refreshHistory();
+}
+
+historyToggle.addEventListener('click', () => setHistoryOpen(historyPanel.hidden));
+historyClose.addEventListener('click', () => {
+    setHistoryOpen(false);
+    historyToggle.focus();
+});
+historyList.addEventListener('click', async (event) => {
+    const item = event.target.closest('.history-entry');
+    if (!item) return;
+    const deleting = Boolean(event.target.closest('.history-delete'));
+    try {
+        if (deleting) {
+            await deleteHistoryRecord(item.dataset.id);
+            if (activeHistoryId === item.dataset.id) setActiveHistoryId(null);
+            await refreshHistory();
+            return;
+        }
+        const record = await getHistoryRecord(item.dataset.id);
+        if (!record) {
+            await refreshHistory();
+            return;
+        }
+        if (renderFile(record.source, record.fileName, record.mimeType)) {
+            setActiveHistoryId(record.id);
+            await saveRead(record);
+        }
+    } catch (error) {
+        historyStatus.hidden = false;
+        historyStatus.textContent = deleting ? '无法删除这条历史记录' : '无法打开这条历史记录';
+    }
+});
+
+const HISTORY_WIDTH_KEY = 'universal-preview-history-width';
+const HISTORY_MIN_WIDTH = 160;
+const HISTORY_MAX_WIDTH = 560;
+
+function clampHistoryWidth(width) {
+    const toolbarWidth = window.innerWidth <= 600 ? 48 : 56;
+    const workspaceWidth = window.innerWidth <= 600 ? 0 : 180;
+    const maxWidth = Math.max(HISTORY_MIN_WIDTH, Math.min(HISTORY_MAX_WIDTH,
+        window.innerWidth - toolbarWidth - workspaceWidth));
+    historyResize.setAttribute('aria-valuemax', String(maxWidth));
+    return Math.max(HISTORY_MIN_WIDTH, Math.min(maxWidth, width));
+}
+
+function setHistoryWidth(width) {
+    const nextWidth = clampHistoryWidth(width);
+    historyPanel.style.setProperty('--history-panel-width', `${nextWidth}px`);
+    historyResize.setAttribute('aria-valuenow', String(nextWidth));
+    return nextWidth;
+}
+
+try {
+    const savedWidth = Number(localStorage.getItem(HISTORY_WIDTH_KEY));
+    if (savedWidth > 0) setHistoryWidth(savedWidth);
+} catch (error) {
+    // 隐私模式可能禁止 localStorage；仍可在本次页面内调整宽度。
+}
+
+let historyResizeStart = null;
+historyResize.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    historyResizeStart = { x: event.clientX, width: historyPanel.getBoundingClientRect().width };
+    historyResize.setPointerCapture(event.pointerId);
+    document.body.classList.add('resizing-history');
+});
+historyResize.addEventListener('pointermove', (event) => {
+    if (!historyResizeStart) return;
+    setHistoryWidth(historyResizeStart.width + event.clientX - historyResizeStart.x);
+});
+function finishHistoryResize() {
+    if (!historyResizeStart) return;
+    historyResizeStart = null;
+    document.body.classList.remove('resizing-history');
+    try {
+        localStorage.setItem(HISTORY_WIDTH_KEY, historyPanel.getBoundingClientRect().width);
+    } catch (error) {
+        // 宽度偏好无法持久化时，本次页面的调整仍然有效。
+    }
+}
+historyResize.addEventListener('pointerup', finishHistoryResize);
+historyResize.addEventListener('pointercancel', finishHistoryResize);
+historyResize.addEventListener('lostpointercapture', finishHistoryResize);
+historyResize.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const change = event.key === 'ArrowRight' ? 16 : -16;
+    setHistoryWidth(historyPanel.getBoundingClientRect().width + change);
+    try {
+        localStorage.setItem(HISTORY_WIDTH_KEY, historyPanel.getBoundingClientRect().width);
+    } catch (error) {
+        // 同上：不影响当前页面调整。
+    }
+});
 
 function hideEmptyState() {
     if (emptyState) {
@@ -71,9 +324,11 @@ marked.setOptions({
 function renderMarkdown(markdown) {
     try {
         hideEmptyState();
+        contentDiv.classList.remove('code-mode');
 
         // 使用 marked.parse 将 Markdown 转换为 HTML
         const html = marked.parse(markdown);
+        pageHeader.hidden = true;
         contentDiv.innerHTML = html;
         contentDiv.classList.add('show');
 
@@ -83,8 +338,10 @@ function renderMarkdown(markdown) {
                 hljs.highlightElement(code);
             });
         }
+        return true;
     } catch (error) {
         showError('Markdown 解析失败: ' + error.message);
+        return false;
     }
 }
 
@@ -111,6 +368,7 @@ function formatCode(source, extension) {
  */
 function renderCode(source, fileName, extension) {
     hideEmptyState();
+    pageHeader.hidden = true;
 
     const language = FILE_LANGUAGES[extension] || '';
     const viewer = document.createElement('section');
@@ -141,6 +399,7 @@ function renderCode(source, fileName, extension) {
     if (window.hljs) {
         hljs.highlightElement(code);
     }
+    return true;
 }
 
 function renderFile(source, fileName, mimeType = '') {
@@ -148,9 +407,9 @@ function renderFile(source, fileName, mimeType = '') {
     contentDiv.classList.remove('code-mode');
 
     if (MARKDOWN_EXTENSIONS.has(extension) || (!extension && mimeType.includes('markdown'))) {
-        renderMarkdown(source);
+        return renderMarkdown(source);
     } else {
-        renderCode(source, getDisplayName(fileName), extension);
+        return renderCode(source, getDisplayName(fileName), extension);
     }
 }
 
@@ -160,6 +419,8 @@ function renderFile(source, fileName, mimeType = '') {
  */
 function showError(message) {
     hideEmptyState();
+    pageHeader.hidden = false;
+    setActiveHistoryId(null);
 
     const error = document.createElement('div');
     error.className = 'error-message';
@@ -174,6 +435,7 @@ function showError(message) {
  */
 function showLoading() {
     hideEmptyState();
+    setActiveHistoryId(null);
 
     contentDiv.innerHTML = '<div class="loading">正在加载...</div>';
     contentDiv.classList.remove('code-mode');
@@ -202,7 +464,7 @@ function handleFileUpload(event) {
     const reader = new FileReader();
 
     reader.onload = function(e) {
-        renderFile(e.target.result, file.name, file.type);
+        openLocalFile(file, e.target.result);
     };
 
     reader.onerror = function() {
@@ -210,6 +472,19 @@ function handleFileUpload(event) {
     };
 
     reader.readAsText(file);
+}
+
+function openLocalFile(file, source) {
+    const id = `file:${file.name}:${file.size}:${file.lastModified}`;
+    if (!renderFile(source, file.name, file.type)) return;
+    setActiveHistoryId(id);
+    void saveRead({
+        id,
+        title: file.name,
+        fileName: file.name,
+        mimeType: file.type,
+        source
+    });
 }
 
 /**
@@ -244,7 +519,16 @@ async function loadFromUrl(url) {
 
         const content = await response.text();
         const contentType = response.headers.get('content-type') || '';
-        renderFile(content, finalUrl, contentType);
+        if (!renderFile(content, finalUrl, contentType)) return;
+        const id = `url:${finalUrl}`;
+        setActiveHistoryId(id);
+        void saveRead({
+            id,
+            title: getDisplayName(finalUrl),
+            fileName: finalUrl,
+            mimeType: contentType,
+            source: content
+        });
 
         // 清空 URL 输入框
         if (urlInput) {
@@ -335,7 +619,7 @@ function handleDropFile(file) {
     
     const reader = new FileReader();
     reader.onload = function(e) {
-        renderFile(e.target.result, file.name, file.type);
+        openLocalFile(file, e.target.result);
     };
     reader.onerror = function() {
         showError('文件读取失败，请重试');
@@ -409,7 +693,17 @@ document.addEventListener('paste', function(event) {
             && (item.type === 'text/plain' || item.type === 'text/markdown')) {
             item.getAsString(function(text) {
                 if (text) {
-                    renderMarkdown(text);
+                    if (!renderMarkdown(text)) return;
+                    const title = `粘贴内容 ${new Date().toLocaleString('zh-CN')}`;
+                    const id = `paste:${Date.now()}:${Math.random()}`;
+                    setActiveHistoryId(id);
+                    void saveRead({
+                        id,
+                        title,
+                        fileName: '粘贴内容.md',
+                        mimeType: 'text/markdown',
+                        source: text
+                    });
                 }
             });
             event.preventDefault();
